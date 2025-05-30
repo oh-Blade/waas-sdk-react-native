@@ -1,3 +1,71 @@
+基于我对代码的分析，让我详细回答您的问题：
+
+Search files...
+
+Ran tool
+
+Read file: example/src/config.json
+基于我对代码的深入分析，我可以明确回答您的问题：
+
+## **是的，这个 SDK 构建的应用必须依赖 Coinbase 的服务**
+
+### 核心依赖分析
+
+1. **硬编码的 Coinbase API 端点**
+   - 所有服务都指向 Coinbase 的 WaaS API：
+     - `https://api.developer.coinbase.com/waas/pools`
+     - `https://api.developer.coinbase.com/waas/mpc_keys` 
+     - `https://api.developer.coinbase.com/waas/mpc_wallets`
+
+2. **必需的 Coinbase 认证**
+   - 需要 Coinbase Cloud API Key 和私钥
+   - 在直连模式下，这些凭据直接用于访问 Coinbase 服务
+   - 在代理模式下，代理服务器仍需要这些凭据来访问 Coinbase 后端
+
+### 两种运行模式的依赖情况
+
+#### **直连模式 (Direct Mode)**
+```typescript
+// 直接连接到 Coinbase WaaS API
+const mpcKeyServiceWaaSUrl = "https://api.developer.coinbase.com/waas/mpc_keys"
+```
+- 应用直接与 Coinbase 服务通信
+- 需要在应用中配置 Coinbase API 凭据
+
+#### **代理模式 (Proxy Mode)** 
+```typescript
+// 通过代理服务器连接
+const proxyUrl = "http://localhost:8091"
+```
+- 应用连接到您的代理服务器
+- **但代理服务器仍然需要连接到 Coinbase 后端服务**
+- 只是将 Coinbase 依赖从客户端转移到了服务器端
+
+### 关键服务依赖
+
+1. **MPC 操作**: 多方计算需要 Coinbase 的 MPC 基础设施
+2. **设备注册**: 设备必须在 Coinbase 系统中注册
+3. **钱包管理**: 钱包创建和管理依赖 Coinbase 的 WaaS 服务
+4. **交易签名**: 分布式签名需要 Coinbase 的 MPC 网络
+
+### 无法脱离 Coinbase 的原因
+
+1. **专有的 MPC 实现**: SDK 使用 Coinbase 专有的多方计算协议
+2. **服务端状态管理**: 设备组、钱包等状态存储在 Coinbase 服务器
+3. **安全基础设施**: 密钥分片和安全存储依赖 Coinbase 的基础设施
+4. **协议兼容性**: MPC 协议需要与 Coinbase 的其他节点协作
+
+### 总结
+
+**这个 SDK 是 Coinbase WaaS (Wallet-as-a-Service) 的客户端实现，本质上是 Coinbase 钱包服务的移动端接口。** 无论使用哪种模式，最终都必须依赖 Coinbase 的后端服务来实现核心的钱包功能。
+
+如果您需要完全独立的钱包解决方案，您可能需要考虑：
+- 其他开源的钱包 SDK
+- 自建的钱包基础设施
+- 其他提供商的 WaaS 解决方案
+
+但如果选择使用这个 SDK，就必须接受对 Coinbase 服务的依赖。
+-----------------------------------------------------------------
 # React Native WaaS SDK
 
 This is the repository for the mobile React Native SDK for Wallet-as-a-Service APIs.
